@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Login</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div class="flex flex-col items-center justify-center p-8 bg-white rounded-xl shadow-lg w-full max-w-md">
+        <img src="logo.png"College Logo" class="w-24 h-24 mb-6 rounded-full shadow-md object-cover">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Welcome Back!</h1>
+        <form id="loginForm" class="w-full">
+            <div class="mb-4">
+                <label for="username" class="block text-gray-700 text-sm font-semibold mb-2">Username</label>
+                <input type="text" id="username" name="username" placeholder="Enter your username" class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" required>
+            </div>
+            <div class="mb-6">
+                <label for="password" class="block text-gray-700 text-sm font-semibold mb-2">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" required>
+            </div>
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-300 transform hover:scale-105">
+                Login
+            </button>
+        </form>
+        <p class="mt-6 text-center text-gray-600 text-sm">
+            Don't have an account? 
+            <a href="signup.html" class="text-blue-600 hover:text-blue-800 font-semibold transition duration-200">Sign Up here</a>
+        </p>
+        <div id="messageBox" class="mt-4 p-3 rounded-lg text-sm text-center hidden" role="alert"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.getElementById('loginForm');
+            const messageBox = document.getElementById('messageBox');
+
+            // Function to display messages
+            function showMessage(message, type = 'error') {
+                messageBox.textContent = message;
+                messageBox.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
+                if (type === 'error') {
+                    messageBox.classList.add('bg-red-100', 'text-red-700');
+                } else if (type === 'success') {
+                    messageBox.classList.add('bg-green-100', 'text-green-700');
+                }
+            }
+
+            loginForm.addEventListener('submit', (event) => {
+                event.preventDefault(); // Prevent default form submission
+
+                const username = loginForm.username.value;
+                const password = loginForm.password.value;
+
+                // Retrieve registered users from local storage
+                const users = JSON.parse(localStorage.getItem('users')) || [];
+
+                // Find user
+                const user = users.find(u => u.username === username && u.password === password);
+
+                if (user) {
+                    // Store logged-in status (simple simulation)
+                    localStorage.setItem('loggedInUser', JSON.stringify({ username: user.username }));
+                    showMessage('Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'home.html'; // Redirect to the home page
+                    }, 1000);
+                } else {
+                    showMessage('Invalid username or password.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

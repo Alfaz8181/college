@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Student Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            min-height: 100vh;
+        }
+        .message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none; /* Hidden by default */
+        }
+    </style>
+</head>
+<body>
+    <!-- Message Box -->
+    <div id="messageBox" class="message-box text-center"></div>
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md p-4 flex justify-between items-center rounded-b-lg">
+        <div class="flex items-center">
+            <!-- Increased logo size to w-16 h-16 -->
+            <img src="logo.png" alt="College Logo" class="w-16 h-16 mr-3 rounded-full object-cover">
+            <span class="text-xl font-bold text-gray-800">Alsa University</span>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span id="loggedInUserDisplay" class="text-gray-700 font-medium"></span>
+            <button id="logoutButton" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 transform hover:scale-105">
+                Logout
+            </button>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-6">
+        <!-- Add Student Section -->
+        <div class="bg-white p-8 rounded-xl shadow-lg mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Add New Student</h2>
+            <form id="addStudentForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div>
+                    <label for="studentName" class="block text-gray-700 text-sm font-semibold mb-2">Student Name</label>
+                    <input type="text" id="studentName" placeholder="Enter student name" class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200" required>
+                </div>
+                <div>
+                    <label for="usn" class="block text-gray-700 text-sm font-semibold mb-2">USN</label>
+                    <input type="text" id="usn" placeholder="Enter USN" class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200" required>
+                </div>
+                <div>
+                    <label for="totalFees" class="block text-gray-700 text-sm font-semibold mb-2">Total Fees ($)</label>
+                    <input type="number" id="totalFees" placeholder="e.g., 50000" class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200" required min="0">
+                </div>
+                <div>
+                    <label for="course" class="block text-gray-700 text-sm font-semibold mb-2">Course</label>
+                    <select id="course" class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200" required>
+                        <option value="">Select Course</option>
+                        <option value="B.Tech">B.Tech</option>
+                        <option value="M.Tech">M.Tech</option>
+                        <option value="BBA">BBA</option>
+                        <option value="BCA">BCA</option>
+                        <option value="MBA">MBA</option>
+                        <option value="MCA">MCA</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="year" class="block text-gray-700 text-sm font-semibold mb-2">Year</label>
+                    <input type="number" id="year" placeholder="e.g., 2024" class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200" required min="1900" max="2100">
+                </div>
+                <div class="col-span-full flex justify-end">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md focus:outline-none focus:shadow-outline transition duration-300 transform hover:scale-105">
+                        Add Student
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Search Student Section -->
+        <div class="bg-white p-8 rounded-xl shadow-lg mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Search Students</h2>
+            <div class="flex items-center mb-6">
+                <input type="text" id="searchName" placeholder="Search by student name..." class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200">
+                <button id="searchButton" class="ml-4 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow-md focus:outline-none focus:shadow-outline transition duration-300 transform hover:scale-105">
+                    Search
+                </button>
+                <button id="clearSearchButton" class="ml-4 bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg shadow-md focus:outline-none focus:shadow-outline transition duration-300 transform hover:scale-105">
+                    Clear Search
+                </button>
+            </div>
+
+            <!-- Student List Table -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white rounded-lg shadow-md">
+                    <thead>
+                        <tr class="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
+                            <th class="py-3 px-6 text-left rounded-tl-lg">Name</th>
+                            <th class="py-3 px-6 text-left">USN</th>
+                            <th class="py-3 px-6 text-left">Course</th>
+                            <th class="py-3 px-6 text-left">Year</th>
+                            <th class="py-3 px-6 text-right">Total Fees</th>
+                            <th class="py-3 px-6 text-right">Paid Amount</th>
+                            <th class="py-3 px-6 text-right">Balance</th>
+                            <th class="py-3 px-6 text-center rounded-tr-lg">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTableBody" class="text-gray-600 text-sm font-light">
+                        <!-- Student data will be inserted here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <p id="noStudentsFound" class="hidden text-center text-gray-500 mt-4">No students found.</p>
+        </div>
+    </div>
+
+    <!-- Fee Payment Modal -->
+    <div id="paymentModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden z-50">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-95 opacity-0" id="paymentModalContent">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6">Pay Fees</h3>
+            <p class="mb-4 text-gray-700">Paying for: <span id="modalStudentName" class="font-semibold"></span> (<span id="modalStudentUSN" class="font-semibold"></span>)</p>
+            <p class="mb-4 text-gray-700">Current Balance: <span id="modalCurrentBalance" class="font-semibold text-blue-600"></span></p>
+            <div class="mb-4">
+                <label for="paymentAmount" class="block text-gray-700 text-sm font-semibold mb-2">Amount to Pay ($)</label>
+                <input type="number" id="paymentAmount" placeholder="Enter amount" class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200" required min="0">
+            </div>
+            <div class="flex justify-end space-x-4">
+                <button id="cancelPaymentButton" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Cancel</button>
+                <button id="confirmPaymentButton" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Confirm Payment</button>
+            </div>
+            <div id="modalMessageBox" class="mt-4 p-3 rounded-lg text-sm text-center hidden" role="alert"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const addStudentForm = document.getElementById('addStudentForm');
+            const studentTableBody = document.getElementById('studentTableBody');
+            const searchNameInput = document.getElementById('searchName');
+            const searchButton = document.getElementById('searchButton');
+            const clearSearchButton = document.getElementById('clearSearchButton');
+            const noStudentsFoundMessage = document.getElementById('noStudentsFound');
+            const logoutButton = document.getElementById('logoutButton');
+            const loggedInUserDisplay = document.getElementById('loggedInUserDisplay');
+            const messageBox = document.getElementById('messageBox');
+
+            // Modal elements
+            const paymentModal = document.getElementById('paymentModal');
+            const paymentModalContent = document.getElementById('paymentModalContent');
+            const modalStudentName = document.getElementById('modalStudentName');
+            const modalStudentUSN = document.getElementById('modalStudentUSN');
+            const modalCurrentBalance = document.getElementById('modalCurrentBalance');
+            const paymentAmountInput = document.getElementById('paymentAmount');
+            const confirmPaymentButton = document.getElementById('confirmPaymentButton');
+            const cancelPaymentButton = document.getElementById('cancelPaymentButton');
+            const modalMessageBox = document.getElementById('modalMessageBox');
+
+            let students = []; // Array to hold student data
+            let currentStudentForPayment = null; // To store student being paid for
+
+            // --- Authentication Check ---
+            const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+            if (!loggedInUser) {
+                window.location.href = 'login.html'; // Redirect to login if not authenticated
+                return; // Stop execution
+            } else {
+                loggedInUserDisplay.textContent = `Welcome, ${loggedInUser.username}!`;
+            }
+
+            logoutButton.addEventListener('click', () => {
+                localStorage.removeItem('loggedInUser'); // Clear login status
+                window.location.href = 'login.html'; // Redirect to login page
+            });
+
+            // --- Message Box Function ---
+            function showMessage(message, type = 'error', duration = 3000) {
+                messageBox.textContent = message;
+                messageBox.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700', 'bg-blue-100', 'text-blue-700');
+                
+                if (type === 'error') {
+                    messageBox.classList.add('bg-red-100', 'text-red-700');
+                } else if (type === 'success') {
+                    messageBox.classList.add('bg-green-100', 'text-green-700');
+                } else if (type === 'info') {
+                    messageBox.classList.add('bg-blue-100', 'text-blue-700');
+                }
+                messageBox.style.display = 'block';
+
+                setTimeout(() => {
+                    messageBox.style.display = 'none';
+                }, duration);
+            }
+
+            function showModalMessage(message, type = 'error') {
+                modalMessageBox.textContent = message;
+                modalMessageBox.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
+                if (type === 'error') {
+                    modalMessageBox.classList.add('bg-red-100', 'text-red-700');
+                } else if (type === 'success') {
+                    modalMessageBox.classList.add('bg-green-100', 'text-green-700');
+                }
+                modalMessageBox.classList.remove('hidden');
+            }
+
+            function hideModalMessage() {
+                modalMessageBox.classList.add('hidden');
+            }
+
+            // --- Load Students from Local Storage ---
+            function loadStudents() {
+                const storedStudents = localStorage.getItem('students');
+                if (storedStudents) {
+                    students = JSON.parse(storedStudents);
+                }
+                renderStudents(students); // Render all students initially
+            }
+
+            // --- Save Students to Local Storage ---
+            function saveStudents() {
+                localStorage.setItem('students', JSON.stringify(students));
+            }
+
+            // --- Render Students to Table ---
+            function renderStudents(filteredStudents = students) {
+                studentTableBody.innerHTML = ''; // Clear existing rows
+                if (filteredStudents.length === 0) {
+                    noStudentsFoundMessage.classList.remove('hidden');
+                    return;
+                } else {
+                    noStudentsFoundMessage.classList.add('hidden');
+                }
+
+                filteredStudents.forEach(student => {
+                    const balance = student.totalFees - student.paidAmount;
+                    const row = document.createElement('tr');
+                    row.classList.add('border-b', 'border-gray-200', 'hover:bg-gray-100');
+                    row.innerHTML = `
+                        <td class="py-3 px-6 text-left whitespace-nowrap font-medium">${student.name}</td>
+                        <td class="py-3 px-6 text-left">${student.usn}</td>
+                        <td class="py-3 px-6 text-left">${student.course}</td>
+                        <td class="py-3 px-6 text-left">${student.year}</td>
+                        <td class="py-3 px-6 text-right">$${student.totalFees.toFixed(2)}</td>
+                        <td class="py-3 px-6 text-right text-green-600">$${student.paidAmount.toFixed(2)}</td>
+                        <td class="py-3 px-6 text-right ${balance <= 0 ? 'text-green-700' : 'text-red-600'} font-semibold">$${balance.toFixed(2)}</td>
+                        <td class="py-3 px-6 text-center">
+                            <div class="flex item-center justify-center space-x-2">
+                                <button data-id="${student.usn}" class="edit-btn bg-yellow-500 hover:bg-yellow-600 text-white py-1 px-3 rounded-lg text-xs transition duration-200 transform hover:scale-105">Edit</button>
+                                <button data-id="${student.usn}" class="pay-btn bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded-lg text-xs transition duration-200 transform hover:scale-105">Pay</button>
+                                <button data-id="${student.usn}" class="delete-btn bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-lg text-xs transition duration-200 transform hover:scale-105">Delete</button>
+                            </div>
+                        </td>
+                    `;
+                    studentTableBody.appendChild(row);
+                });
+
+                attachEventListeners(); // Attach event listeners to new buttons
+            }
+
+            // --- Attach Event Listeners for Dynamic Buttons (Pay, Edit, Delete) ---
+            function attachEventListeners() {
+                document.querySelectorAll('.pay-btn').forEach(button => {
+                    button.onclick = (e) => openPaymentModal(e.target.dataset.id);
+                });
+                document.querySelectorAll('.edit-btn').forEach(button => {
+                    button.onclick = (e) => editStudent(e.target.dataset.id);
+                });
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.onclick = (e) => deleteStudent(e.target.dataset.id);
+                });
+            }
+
+            // --- Add Student Form Submission ---
+            addStudentForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+
+                const name = addStudentForm.studentName.value.trim();
+                const usn = addStudentForm.usn.value.trim().toUpperCase(); // Convert USN to uppercase
+                const totalFees = parseFloat(addStudentForm.totalFees.value);
+                const course = addStudentForm.course.value;
+                const year = parseInt(addStudentForm.year.value);
+
+                // Basic validation
+                if (!name || !usn || isNaN(totalFees) || totalFees < 0 || !course || isNaN(year)) {
+                    showMessage('Please fill in all fields correctly.', 'error');
+                    return;
+                }
+
+                // Check if USN already exists
+                if (students.some(s => s.usn === usn)) {
+                    showMessage('A student with this USN already exists.', 'error');
+                    return;
+                }
+
+                const newStudent = {
+                    id: Date.now().toString(), // Simple unique ID
+                    name,
+                    usn,
+                    totalFees,
+                    paidAmount: 0, // Initially no fees paid
+                    course,
+                    year
+                };
+
+                students.push(newStudent);
+                saveStudents();
+                renderStudents(); // Re-render the table with the new student
+                addStudentForm.reset(); // Clear the form
+                showMessage('Student added successfully!', 'success');
+            });
+
+            // --- Search Functionality ---
+            searchButton.addEventListener('click', () => {
+                const searchTerm = searchNameInput.value.trim().toLowerCase();
+                if (searchTerm === '') {
+                    renderStudents(); // If search is empty, show all students
+                    return;
+                }
+                const filtered = students.filter(student =>
+                    student.name.toLowerCase().includes(searchTerm)
+                );
+                renderStudents(filtered);
+            });
+
+            // Allow search by pressing Enter in the input field
+            searchNameInput.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter') {
+                    searchButton.click();
+                }
+            });
+
+            clearSearchButton.addEventListener('click', () => {
+                searchNameInput.value = '';
+                renderStudents(); // Show all students
+            });
+
+            // --- Edit Student (Placeholder - implement later if needed) ---
+            function editStudent(usn) {
+                // For a full implementation, you might open a modal to edit student details
+                showMessage(`Edit functionality for USN: ${usn} (not fully implemented in this demo)`, 'info');
+            }
+
+            // --- Delete Student ---
+            function deleteStudent(usnToDelete) {
+                // In a real app, you would ask for confirmation first
+                if (!confirm('Are you sure you want to delete this student record?')) {
+                    return;
+                }
+
+                students = students.filter(student => student.usn !== usnToDelete);
+                saveStudents();
+                renderStudents();
+                showMessage('Student deleted successfully!', 'success');
+            }
+
+            // --- Fee Payment Modal Logic ---
+            function openPaymentModal(usn) {
+                currentStudentForPayment = students.find(s => s.usn === usn);
+                if (currentStudentForPayment) {
+                    modalStudentName.textContent = currentStudentForPayment.name;
+                    modalStudentUSN.textContent = currentStudentForPayment.usn;
+                    modalCurrentBalance.textContent = `$${(currentStudentForPayment.totalFees - currentStudentForPayment.paidAmount).toFixed(2)}`;
+                    paymentAmountInput.value = ''; // Clear previous input
+                    hideModalMessage(); // Hide any previous modal messages
+
+                    // Show modal with animation
+                    paymentModal.classList.remove('hidden');
+                    setTimeout(() => {
+                        paymentModalContent.classList.remove('opacity-0', 'scale-95');
+                        paymentModalContent.classList.add('opacity-100', 'scale-100');
+                    }, 50); // Small delay for transition to apply
+                }
+            }
+
+            cancelPaymentButton.addEventListener('click', () => {
+                // Hide modal with animation
+                paymentModalContent.classList.remove('opacity-100', 'scale-100');
+                paymentModalContent.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => {
+                    paymentModal.classList.add('hidden');
+                }, 300); // Match transition duration
+                currentStudentForPayment = null; // Clear selected student
+            });
+
+            confirmPaymentButton.addEventListener('click', () => {
+                if (!currentStudentForPayment) return;
+
+                const amountToPay = parseFloat(paymentAmountInput.value);
+                const currentBalance = currentStudentForPayment.totalFees - currentStudentForPayment.paidAmount;
+
+                if (isNaN(amountToPay) || amountToPay <= 0) {
+                    showModalMessage('Please enter a valid positive amount.', 'error');
+                    return;
+                }
+
+                if (amountToPay > currentBalance) {
+                    showModalMessage(`Amount exceeds balance. Max payable: $${currentBalance.toFixed(2)}`, 'error');
+                    return;
+                }
+
+                currentStudentForPayment.paidAmount += amountToPay;
+                saveStudents(); // Update local storage
+                renderStudents(); // Re-render the table to reflect new balance
+
+                showModalMessage('Payment successful!', 'success');
+                showMessage('Fees paid successfully!', 'success');
+
+                // Auto-close modal after a short delay
+                setTimeout(() => {
+                    cancelPaymentButton.click(); // Use the existing close logic
+                }, 1000);
+            });
+
+            // Initial load of students
+            loadStudents();
+        });
+    </script>
+</body>
+</html>
